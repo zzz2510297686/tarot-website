@@ -1,0 +1,28 @@
+name: Deploy Tarot Website
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Replace API key
+        run: |
+          # 读取index.html文件
+          content=$(cat index.html)
+          # 替换API密钥占位符为实际密钥
+          content=${content//API_KEY_PLACEHOLDER/${{ secrets.API_KEY }}}
+          # 写回文件
+          echo "$content" > index.html
+      
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./
