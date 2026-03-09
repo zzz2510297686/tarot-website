@@ -1,0 +1,874 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>塔罗牌占卜</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: #f2f2f7;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #333;
+        }
+
+        .container {
+            background: white;
+            border-radius: 24px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            padding: 32px;
+            max-width: 800px;
+            width: 90%;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 2.2rem;
+            font-weight: 700;
+            margin-bottom: 24px;
+            color: #007aff;
+        }
+
+        .game-mode-section {
+            margin-bottom: 24px;
+        }
+
+        .game-mode-section label {
+            display: block;
+            font-size: 1.1rem;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .game-mode-select {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid #e0e0e0;
+            border-radius: 12px;
+            font-size: 1rem;
+            background: white;
+            color: #333;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            transition: all 0.2s ease;
+        }
+
+        .game-mode-select:focus {
+            outline: none;
+            border-color: #007aff;
+            box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.1);
+        }
+
+        .draw-button {
+            background: #007aff;
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin-bottom: 24px;
+        }
+
+        .draw-button:hover {
+            background: #0066cc;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 122, 255, 0.3);
+        }
+
+        .draw-button:active {
+            transform: translateY(0);
+        }
+
+        .card-section {
+            margin-bottom: 30px;
+        }
+
+        .card-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .card {
+            width: 200px;
+            height: 300px;
+            border-radius: 16px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            background: white;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.2s ease;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+
+        .card h3 {
+            display: none;
+        }
+
+        .card p {
+            display: none;
+        }
+
+        .card-name {
+            font-weight: 600;
+            color: #007aff;
+            text-align: center;
+            font-size: 1.1rem;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+        }
+
+        .card.reversed {
+            transform: rotate(180deg);
+        }
+
+        .card-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            transition: all 0.3s ease;
+        }
+
+        .card-container:hover {
+            transform: translateY(-4px);
+        }
+
+        .card-inner {
+            position: relative;
+            width: 200px;
+            height: 300px;
+        }
+
+        .card-inner .card {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+        }
+
+        .card-back {
+            background: #007aff;
+            position: relative;
+        }
+
+        .card-back::before {
+            content: '塔罗牌';
+            font-size: 1.8rem;
+            font-weight: 600;
+            color: white;
+        }
+
+        /* 三张牌阵样式 */
+        .three-card-spread {
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            flex-wrap: wrap;
+            gap: 32px;
+            margin: 32px 0;
+            padding: 0 20px;
+        }
+
+        .card-position {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            flex: 0 0 200px;
+        }
+
+        .position-label {
+            font-weight: 600;
+            color: #007aff;
+            text-align: center;
+            font-size: 0.9rem;
+            background: white;
+            padding: 6px 12px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+
+        .staff-cards {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        /* 单牌样式 */
+        .single-card {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 24px;
+            margin: 32px 0;
+        }
+
+        @media (max-width: 1024px) {
+            .celtic-cross-spread {
+                grid-template-columns: 1fr;
+                grid-template-rows: auto auto;
+            }
+            
+            .cross-area {
+                grid-column: 1;
+                grid-row: 1;
+            }
+            
+            .staff-cards {
+                grid-column: 1;
+                grid-row: 2;
+                flex-direction: row;
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .three-card-spread {
+                flex-direction: row;
+                flex-wrap: nowrap;
+                overflow-x: auto;
+                justify-content: flex-start;
+                padding: 0 10px;
+                gap: 16px;
+            }
+
+            .card-position {
+                flex: 0 0 180px;
+            }
+
+            .cross-row {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .staff-cards {
+                flex-direction: row;
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+        }
+
+        /* 滚动条样式 */
+        .three-card-spread::-webkit-scrollbar {
+            height: 6px;
+        }
+
+        .three-card-spread::-webkit-scrollbar-track {
+            background: #f2f2f7;
+            border-radius: 3px;
+        }
+
+        .three-card-spread::-webkit-scrollbar-thumb {
+            background: #c7c7cc;
+            border-radius: 3px;
+        }
+
+        .three-card-spread::-webkit-scrollbar-thumb:hover {
+            background: #a8a8a8;
+        }
+
+        /* 卡片容器动画 */
+        .card-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            transition: all 0.3s ease;
+        }
+
+        .card-container:hover {
+            transform: translateY(-4px);
+        }
+
+        @keyframes flip {
+            0% {
+                transform: rotateY(0deg);
+            }
+            50% {
+                transform: rotateY(90deg);
+            }
+            100% {
+                transform: rotateY(0deg);
+            }
+        }
+
+        .card.flip-animation {
+            animation: flip 1s ease-in-out;
+        }
+
+        .answer-section {
+            background: #f2f2f7;
+            border-radius: 16px;
+            padding: 20px;
+            text-align: left;
+        }
+
+        .answer-section h2 {
+            font-size: 1.4rem;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: #007aff;
+        }
+
+        .answer-section p {
+            font-size: 1rem;
+            line-height: 1.8;
+            color: #333;
+            white-space: pre-wrap;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        /* iOS风格的滚动条 */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f2f2f7;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #c7c7cc;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #a8a8a8;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+
+            .card {
+                width: 150px;
+                height: 225px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>塔罗牌占卜</h1>
+        
+        <div class="game-mode-section">
+            <label for="gameMode">选择占卜方式：</label>
+            <select id="gameMode" class="game-mode-select">
+                <option value="single">单牌抽签（每日指引）</option>
+                <option value="past-present-future">三张牌阵（过去、现在、未来）</option>
+                <option value="mind-soul-action">三张牌阵（意识、潜意识、行动）</option>
+            </select>
+        </div>
+        
+        <button class="draw-button" onclick="drawCard()">开始占卜</button>
+        
+        <div class="card-section hidden" id="cardSection">
+            <div class="card" id="card">
+                <h3 id="cardName">塔罗牌名称</h3>
+                <p id="cardMeaning">塔罗牌含义</p>
+            </div>
+        </div>
+        
+        <div class="answer-section hidden" id="answerSection">
+            <h2>占卜结果</h2>
+            <p id="answer"></p>
+        </div>
+    </div>
+
+    <script>
+        // 塔罗牌数据
+        const tarotCards = [
+            {
+                name: "愚人",
+                meaning: "开始、天真、冒险、活在当下、潜力无限。他是踏上旅程的初心者，行囊里装着过往的经验（很少），眼神望着远方的理想。他代表一种不顾后果、相信宇宙的纯粹能量。",
+                image: "https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=tarot%20card%20The%20Fool%20with%20a%20young%20man%20walking%20off%20a%20cliff%20with%20a%20dog%2C%20colorful%20vibrant%20art%2C%20tarot%20style&image_size=square",
+                upright: "新开始、冒险、自由、疯狂的想法、信仰之跃。",
+                reversed: "愚蠢的决定、犹豫不决、冒失、逃避现实、停滞不前。",
+                interpretations: [
+                    "你的问题正处于一个新的开始阶段，需要勇气去探索。",
+                    "放下顾虑，勇敢地迈出第一步，将会有意外的收获。",
+                    "保持乐观的心态，信任生命的旅程。"
+                ]
+            },
+            {
+                name: "魔术师",
+                meaning: "创造、意志、技能、显化。他桌上的四元素代表他掌握了世间所有的工具（权杖、圣杯、宝剑、星币），手指天地，意味着\"上承天意，下传人事\"。他拥有将想法变为现实的能力。",
+                image: "https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=tarot%20card%20The%20Magician%20with%20tools%20on%20a%20table%2C%20colorful%20vibrant%20art%2C%20tarot%20style&image_size=square",
+                upright: "专注、行动力、技巧、资源整合、新计划的开始。",
+                reversed: "才能被埋没、犹豫不决、欺骗、误用才华、拖延。",
+                interpretations: [
+                    "你拥有解决问题的能力和资源，只需要发挥你的创造力。",
+                    "通过专注和努力，你可以实现你的目标。",
+                    "运用你的智慧和技能，创造你想要的结果。"
+                ]
+            },
+            {
+                name: "女祭司",
+                meaning: "直觉、智慧、潜意识、神秘、静止。她坐在两根黑白柱子之间，手持律法书，背后是帷幕和大海。她代表一种内敛、沉静的智慧，告诉我们要倾听内心的声音，而非外在的喧嚣。",
+                image: "https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=tarot%20card%20The%20High%20Priestess%20with%20a%20woman%20in%20blue%20robes%2C%20colorful%20vibrant%20art%2C%20tarot%20style&image_size=square",
+                upright: "直觉、洞察力、等待、静默、学习神秘学、遵循内心指引。",
+                reversed: "直觉受阻、表面化、焦虑、秘密公开、忽略梦境、肤浅。",
+                interpretations: [
+                    "倾听你的内心声音，直觉会给你答案。",
+                    "需要更多的内省和思考，才能找到问题的本质。",
+                    "相信你的直觉，它会引导你走向正确的方向。"
+                ]
+            },
+            {
+                name: "女皇",
+                meaning: "丰收、母性、滋养、感官享受、自然。她坐在舒适的沙发上，周围是丰饶的森林和麦田。她代表着大地的母亲力量，是爱、美丽、生育和物质的丰富。",
+                image: "https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=tarot%20card%20The%20Empress%20with%20a%20woman%20surrounded%20by%20nature%2C%20colorful%20vibrant%20art%2C%20tarot%20style&image_size=square",
+                upright: "创造力、怀孕、婚姻、丰收、享受生活、爱与美丽。",
+                reversed: "依赖、创造受阻、疏忽照顾、缺乏安全感、挥霍无度。",
+                interpretations: [
+                    "你的问题与情感或关系有关，需要关注情感需求。",
+                    "在你的生活中，和谐与平衡是关键。",
+                    "通过 nurturing和关怀，你会找到问题的解决方案。"
+                ]
+            },
+            {
+                name: "皇帝",
+                meaning: "权威、秩序、父性、结构、掌控。他坐在坚硬的王座上，手持十字权杖和圆球，象征着绝对的统治权。他代表社会的规则、逻辑、稳定和自我保护的力量。",
+                image: "https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=tarot%20card%20The%20Emperor%20with%20a%20man%20on%20throne%2C%20colorful%20vibrant%20art%2C%20tarot%20style&image_size=square",
+                upright: "权力、领导力、父亲形象、稳定、自律、遵守规则、获得成功。",
+                reversed: "独裁、固执、缺乏自律、无力掌控、不成熟、滥用权力。",
+                interpretations: [
+                    "需要建立明确的结构和规则来解决你的问题。",
+                    "发挥你的领导力，采取果断的行动。",
+                    "在处理问题时，要保持权威和自信。"
+                ]
+            },
+            {
+                name: "教皇",
+                meaning: "传统、教育、信仰、服从、社会规范。他是精神上的导师，传递着普世的价值观和传统智慧。代表学校教育、宗教、团体和组织，引导我们融入社会。",
+                image: "https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=tarot%20card%20The%20Hierophant%20with%20a%20priest%20figure%2C%20colorful%20vibrant%20art%2C%20tarot%20style&image_size=square",
+                upright: "传统、遵循规则、寻求建议、教育、婚姻、精神指引。",
+                reversed: "打破传统、标新立异、过于保守、不良建议、解除束缚。",
+                interpretations: [
+                    "寻求智慧和指导，可能需要向他人学习。",
+                    "传统的方法和价值观对你的问题有帮助。",
+                    "在做出决定前，考虑道德和伦理因素。"
+                ]
+            },
+            {
+                name: "恋人",
+                meaning: "选择、爱情、结合、价值观的考验。这张牌远不止是男女之情，更核心的是\"选择\"——站在伊甸园中，面对诱惑和声音，需要做出影响深远的决定，并与选择的后果相结合。",
+                image: "https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=tarot%20card%20The%20Lovers%20with%20a%20man%20and%20woman%20with%20angel%2C%20colorful%20vibrant%20art%2C%20tarot%20style&image_size=square",
+                upright: "爱情、吸引力、关键抉择、关系、一致和谐。",
+                reversed: "关系失衡、错误选择、分离、价值观冲突、犹豫不决。",
+                interpretations: [
+                    "你的问题与关系或选择有关，需要平衡不同的需求。",
+                    "在做出决定时，要考虑双方的感受和需求。",
+                    "通过沟通和理解，你可以找到和谐的解决方案。"
+                ]
+            },
+            {
+                name: "战车",
+                meaning: "意志、胜利、控制、征服、冲突。战士驾驶着由两只狮身人面兽（或黑白马）拉动的战车，它们方向相反，象征着需要通过强大的意志力来控制内心的矛盾与对立，从而取得外在的胜利。",
+                image: "https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=tarot%20card%20The%20Chariot%20with%20a%20warrior%20on%20chariot%2C%20colorful%20vibrant%20art%2C%20tarot%20style&image_size=square",
+                upright: "决心、成功、自制力、强而有力的行动、旅行、征服困难。",
+                reversed: "失控、遭遇挫折、方向错误、蛮横、被情绪吞没。",
+                interpretations: [
+                    "需要集中精力，坚定地朝着目标前进。",
+                    "通过自律和决心，你可以克服困难。",
+                    "保持专注，不要被外界干扰所影响。"
+                ]
+            },
+            {
+                name: "力量",
+                meaning: "内在力量、勇气、耐心、慈悲、以柔克刚。牌面上一位温柔的女性正在合上狮子的嘴。这并非暴力的征服，而是用内在的爱心、耐心和勇气去驯服内心的野兽（本能、恐惧）。",
+                image: "https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=tarot%20card%20Strength%20with%20a%20woman%20taming%20a%20lion%2C%20colorful%20vibrant%20art%2C%20tarot%20style&image_size=square",
+                upright: "勇气、耐心、内在力量、以柔克刚、克服心魔、自信。",
+                reversed: "软弱、无力、丧失信心、滥用权力、被本能控制、气虚。",
+                interpretations: [
+                    "你拥有内在的力量来面对和解决问题。",
+                    "通过耐心和理解，你可以克服挑战。",
+                    "温柔而坚定地处理问题，会得到更好的结果。"
+                ]
+            },
+            {
+                name: "隐士",
+                meaning: "内省、探索、指引、独处、寻找真理。老者手持提灯，站在山顶。他远离人群，是为了在孤独中寻找内在的光明和智慧，并可能为后来者指引方向。",
+                image: "https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=tarot%20card%20The%20Hermit%20with%20an%20old%20man%20with%20lantern%2C%20colorful%20vibrant%20art%2C%20tarot%20style&image_size=square",
+                upright: "自我探索、沉思、寻找答案、良师益友、退隐、内省。",
+                reversed: "孤独过度、逃避现实、拒绝帮助、迷失方向、多疑。",
+                interpretations: [
+                    "需要花时间独处和反思，才能找到问题的答案。",
+                    "从内在寻找智慧，而不是依赖外界的意见。",
+                    "在做出决定前，给自己足够的时间思考。"
+                ]
+            },
+            {
+                name: "命运之轮",
+                meaning: "命运、转变、契机、因果、循环。巨大的轮子不断转动，四个角落的神兽代表着四元素或福音作者。这是宇宙中不可抗拒的力量，象征着时来运转、命运的起伏。",
+                image: "https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=tarot%20card%20Wheel%20of%20Fortune%20with%20a%20spinning%20wheel%2C%20colorful%20vibrant%20art%2C%20tarot%20style&image_size=square",
+                upright: "好运、转折点、命运使然、变化、事情进展顺利。",
+                reversed: "厄运、坏消息、抗拒改变、不可控的变数、停滞。",
+                interpretations: [
+                    "你的问题正处于一个变化的阶段，接受并适应变化。",
+                    "命运之轮正在转动，新的机会即将到来。",
+                    "相信生命的循环，坏事过后会有好事发生。"
+                ]
+            },
+            {
+                name: "正义",
+                meaning: "因果、平衡、责任、法律、真相。手持宝剑和天秤的女神，代表理智、均衡和公正的裁决。她要求我们为自己的行为负责，做出公平的决定。",
+                image: "https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=tarot%20card%20Justice%20with%20a%20woman%20with%20scales%2C%20colorful%20vibrant%20art%2C%20tarot%20style&image_size=square",
+                upright: "公正、平等、法律责任、诚实、因果报应、理清是非。",
+                reversed: "不公、偏见、逃避责任、失衡、判决不公、自欺欺人。",
+                interpretations: [
+                    "你的问题需要公平和平衡的解决方案。",
+                    "要考虑所有相关方的利益，做出公正的决定。",
+                    "因果报应，善有善报，恶有恶报。"
+                ]
+            },
+            {
+                name: "倒吊人",
+                meaning: "牺牲、换位思考、顺其自然、暂停、不同视角。他被倒吊在树上，但神态安详。这是一种自愿的牺牲和等待，为了获得更高层次的智慧，必须放下执念，以不同的角度看待世界。",
+                image: "https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=tarot%20card%20The%20Hanged%20Man%20with%20a%20man%20hanging%20upside%20down%2C%20colorful%20vibrant%20art%2C%20tarot%20style&image_size=square",
+                upright: "等待、过渡期、换位思考、牺牲、放下、静观其变。",
+                reversed: "无谓的牺牲、拖延、拒绝看清真相、抗拒、钻牛角尖。",
+                interpretations: [
+                    "有时需要从不同的角度看问题，才能找到答案。",
+                    "暂时的牺牲可能会带来长期的收益。",
+                    "耐心等待，转变即将到来。"
+                ]
+            },
+            {
+                name: "死神",
+                meaning: "结束、新生、蜕变、无法抗拒、放手。骑白马的骷髅，象征着任何形式的结束（并非指肉体的死亡）。旧的模式、关系或阶段必须死去，新的生命才能诞生。是蜕变最激烈的一张牌。",
+                image: "https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=tarot%20card%20Death%20with%20a%20skeleton%20riding%20a%20horse%2C%20colorful%20vibrant%20art%2C%20tarot%20style&image_size=square",
+                upright: "结束、转变、蜕变、清除旧有、顺其自然的改变。",
+                reversed: "抗拒改变、停滞不前、恐惧结束、行尸走肉、不愿放手。",
+                interpretations: [
+                    "你的问题正处于一个结束的阶段，为新的开始做准备。",
+                    "接受变革，它会带来新的机会。",
+                    "放下过去，迎接新的开始。"
+                ]
+            },
+            {
+                name: "节制",
+                meaning: "平衡、调和、净化、适度、自我调节。天使一只脚踩在水里，一只脚踏在岸上，将水在两个杯子间流动。代表通过调和与中庸之道，将对立面融合，达到身心灵的净化与和谐。",
+                image: "https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=tarot%20card%20Temperance%20with%20an%20angel%20pouring%20liquid%2C%20colorful%20vibrant%20art%2C%20tarot%20style&image_size=square",
+                upright: "平衡、协调、控制情绪、学习、适应、融合、创造共赢。",
+                reversed: "失衡、冲突、无效率、过度消耗、急躁、无法调和。",
+                interpretations: [
+                    "在处理问题时，要保持平衡和适度。",
+                    "通过调和不同的元素，找到和谐的解决方案。",
+                    "避免极端，寻求中间道路。"
+                ]
+            },
+            {
+                name: "恶魔",
+                meaning: "束缚、欲望、物质主义、执念、上瘾。恶魔被捆绑在底座上，而脖子上套着锁链的一男一女，其实是可以轻易挣脱的。这代表着我们被自己的欲望、恐惧和无知所束缚，被物质世界所奴役。",
+                image: "https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=tarot%20card%20The%20Devil%20with%20a%20horned%20figure%2C%20colorful%20vibrant%20art%2C%20tarot%20style&image_size=square",
+                upright: "欲望、束缚、沉迷物质、执迷不悟、野心、负面思想。",
+                reversed: "挣脱束缚、戒除不良习惯、觉醒、重获自由、面对黑暗。",
+                interpretations: [
+                    "要警惕物质欲望和诱惑对你的影响。",
+                    "你可能被某种习惯或模式所束缚，需要突破。",
+                    "认识到自己的局限性，寻求自由。"
+                ]
+            },
+            {
+                name: "高塔",
+                meaning: "崩塌、剧变、惊醒、打破幻象、意外。高塔被雷击中，两个人头朝下坠落。这是最剧烈的一张牌，象征着长期以来建立起的虚假结构（信仰、自我、安全感）在一瞬间被外力无情摧毁，从而迫使你看到真相。",
+                image: "https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=tarot%20card%20The%20Tower%20with%20a%20tower%20being%20struck%20by%20lightning%2C%20colorful%20vibrant%20art%2C%20tarot%20style&image_size=square",
+                upright: "突变、灾难、意外打击、崩解、觉醒、释放真相。",
+                reversed: "逃避灾难、被困住、害怕改变、小事化大、拒绝面对。",
+                interpretations: [
+                    "你的问题可能会经历突然的变化，需要适应。",
+                    "旧的结构正在崩溃，为新的开始创造空间。",
+                    "虽然变化可能痛苦，但它会带来新的机会。"
+                ]
+            },
+            {
+                name: "星星",
+                meaning: "希望、疗愈、宁静、指引、灵感。在经历高塔的破坏后，迎来的是星星的宁静。裸身的女子将水倒入大地和池中，夜空中的八颗星闪闪发光。这是对未来充满信心的时刻，是暴风雨后的宁静与疗愈。",
+                image: "https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=tarot%20card%20The%20Star%20with%20a%20woman%20pouring%20water%20under%20stars%2C%20colorful%20vibrant%20art%2C%20tarot%20style&image_size=square",
+                upright: "希望、信心、平静、灵感、身心疗愈、乐观、祝福。",
+                reversed: "绝望、缺乏信心、失望、灵感枯竭、懒惰、空虚。",
+                interpretations: [
+                    "你的问题有积极的解决方案，保持希望。",
+                    "灵感和创意会帮助你找到答案。",
+                    "相信未来，一切都会好起来的。"
+                ]
+            },
+            {
+                name: "月亮",
+                meaning: "恐惧、幻觉、潜意识、不安、陷阱。月光下，狼和狗对着月亮吠叫，龙虾从水中爬出，象征着从潜意识深处浮现的恐惧和幻觉。这是一段充满迷雾、不安和危险的旅程，需要依靠直觉而非理性。",
+                image: "https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=tarot%20card%20The%20Moon%20with%20a%20moon%20and%20crescent%20with%20animals%2C%20colorful%20vibrant%20art%2C%20tarot%20style&image_size=square",
+                upright: "幻觉、不安、恐惧、困惑、潜在的危机、梦境。",
+                reversed: "拨云见日、释放恐惧、走出迷雾、情绪稳定、隐藏的真相被揭露。",
+                interpretations: [
+                    "你的问题可能与潜意识或未解决的情绪有关。",
+                    "要警惕幻觉和误解，寻找真相。",
+                    "相信你的直觉，但也要保持理性。"
+                ]
+            },
+            {
+                name: "太阳",
+                meaning: "成功、活力、喜悦、积极、赤裸真理。阳光普照，一个孩子骑在白马上，张开双臂拥抱世界。这是最光明、最积极的一张牌，代表着无忧无虑的快乐、清晰的成功和生命的活力。",
+                image: "https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=tarot%20card%20The%20Sun%20with%20a%20sun%20and%20child%20riding%20a%20horse%2C%20colorful%20vibrant%20art%2C%20tarot%20style&image_size=square",
+                upright: "成功、快乐、活力、健康、积极、自信、成就。",
+                reversed: "暂时的挫折、缺乏热情、骄傲自大、过度乐观、小成功。",
+                interpretations: [
+                    "你的问题会有积极的结果，充满希望。",
+                    "阳光总在风雨后，困难终将过去。",
+                    "保持积极的心态，成功就在眼前。"
+                ]
+            },
+            {
+                name: "审判",
+                meaning: "觉醒、召唤、重生、因果报应、赦免。天使吹响号角，棺材里的人复活，张开双臂迎接召唤。这代表着一个内心的召唤，一个对过去进行总结和评判的时刻，从而获得精神上的重生和赦免。",
+                image: "https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=tarot%20card%20Judgement%20with%20angel%20blowing%20trumpet%2C%20colorful%20vibrant%20art%2C%20tarot%20style&image_size=square",
+                upright: "觉醒、重生、反省、赦免、结果的到来、召唤。",
+                reversed: "自疑、拒绝召唤、无法原谅自己、错失良机、后悔。",
+                interpretations: [
+                    "你的问题需要你面对过去的行为和决定。",
+                    "觉醒和自我反思会帮助你找到答案。",
+                    "承担责任，做出正确的选择。"
+                ]
+            },
+            {
+                name: "世界",
+                meaning: "圆满、完成、整合、成功、旅程的终点。舞者在桂冠圆环中，四个角落的神兽再次出现，代表着四元素的稳定和完成。愚人之旅终于结束，你已与宇宙合而为一，获得了圆满的成功和极致的快乐。",
+                image: "https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=tarot%20card%20The%20World%20with%20a%20woman%20dancing%20in%20a%20circle%2C%20colorful%20vibrant%20art%2C%20tarot%20style&image_size=square",
+                upright: "完成、成功、实现、整合、旅行、成就感、与世界共舞。",
+                reversed: "未完成、缺乏结尾、停滞、不愿结束、半途而废。",
+                interpretations: [
+                    "你的问题即将得到圆满的解决。",
+                    "你已经完成了一个重要的阶段，准备好迎接新的开始。",
+                    "和谐与统一是解决问题的关键。"
+                ]
+            }
+        ];
+
+        // 抽取塔罗牌函数
+        function drawCard() {
+            const gameMode = document.getElementById('gameMode').value;
+            const cardSection = document.getElementById('cardSection');
+            const answerSection = document.getElementById('answerSection');
+            
+            // 重置状态
+            cardSection.classList.remove('hidden');
+            answerSection.classList.add('hidden');
+            
+            // 根据游戏模式执行不同的逻辑
+            switch(gameMode) {
+                case 'single':
+                    drawSingleCard();
+                    break;
+                case 'past-present-future':
+                    drawThreeCardSpread('过去', '现在', '未来');
+                    break;
+                case 'mind-soul-action':
+                    drawThreeCardSpread('意识', '潜意识', '行动');
+                    break;
+            }
+        }
+
+        // 抽取单牌
+        function drawSingleCard() {
+            const cardSection = document.getElementById('cardSection');
+            
+            // 重置卡片容器
+            cardSection.innerHTML = `
+                <div class="single-card">
+                    <div class="position-label">每日指引</div>
+                    <div class="card-container">
+                        <div class="card-inner">
+                            <div class="card" id="card"></div>
+                        </div>
+                        <div class="card-name" id="cardName"></div>
+                    </div>
+                </div>
+            `;
+            
+            const cardElement = document.getElementById('card');
+            
+            // 显示牌的背面
+            cardElement.className = 'card card-back';
+            cardElement.style.backgroundImage = '';
+            document.getElementById('cardName').textContent = '';
+
+            // 随机选择一张牌
+            const randomIndex = Math.floor(Math.random() * tarotCards.length);
+            const selectedCard = tarotCards[randomIndex];
+            // 随机决定正逆位
+            const isReversed = Math.random() > 0.5;
+
+            // 添加翻牌动画
+            setTimeout(() => {
+                cardElement.classList.add('flip-animation');
+                
+                // 动画结束后显示牌的正面
+                setTimeout(() => {
+                    cardElement.className = `card ${isReversed ? 'reversed' : ''}`;
+                    cardElement.style.backgroundImage = `url('${selectedCard.image}')`;
+                    document.getElementById('cardName').textContent = `${selectedCard.name}${isReversed ? ' (逆位)' : ''}`;
+                    
+                    // 生成答案
+                    generateSingleCardAnswer(selectedCard, isReversed);
+                }, 500);
+            }, 500);
+        }
+
+        // 抽取三张牌阵
+        function drawThreeCardSpread(position1, position2, position3) {
+            const cardSection = document.getElementById('cardSection');
+            // 重置卡片容器
+            cardSection.innerHTML = `
+                <div class="three-card-spread">
+                    <div class="card-position">
+                        <div class="position-label">${position1}</div>
+                        <div class="card-container">
+                            <div class="card-inner">
+                                <div class="card" id="card1"></div>
+                            </div>
+                            <div class="card-name" id="cardName1"></div>
+                        </div>
+                    </div>
+                    <div class="card-position">
+                        <div class="position-label">${position2}</div>
+                        <div class="card-container">
+                            <div class="card-inner">
+                                <div class="card" id="card2"></div>
+                            </div>
+                            <div class="card-name" id="cardName2"></div>
+                        </div>
+                    </div>
+                    <div class="card-position">
+                        <div class="position-label">${position3}</div>
+                        <div class="card-container">
+                            <div class="card-inner">
+                                <div class="card" id="card3"></div>
+                            </div>
+                            <div class="card-name" id="cardName3"></div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // 随机选择三张牌
+            const selectedCards = [];
+            const cardReversed = [];
+            while (selectedCards.length < 3) {
+                const randomIndex = Math.floor(Math.random() * tarotCards.length);
+                const card = tarotCards[randomIndex];
+                if (!selectedCards.includes(card)) {
+                    selectedCards.push(card);
+                    cardReversed.push(Math.random() > 0.5);
+                }
+            }
+
+            // 依次翻牌
+            selectedCards.forEach((card, index) => {
+                const cardElement = document.getElementById(`card${index + 1}`);
+                const cardNameElement = document.getElementById(`cardName${index + 1}`);
+                const isReversed = cardReversed[index];
+                
+                // 显示牌的背面
+                cardElement.className = 'card card-back';
+                cardElement.style.backgroundImage = '';
+                cardNameElement.textContent = '';
+
+                // 添加翻牌动画
+                setTimeout(() => {
+                    cardElement.classList.add('flip-animation');
+                    
+                    // 动画结束后显示牌的正面
+                    setTimeout(() => {
+                        cardElement.className = `card ${isReversed ? 'reversed' : ''}`;
+                        cardElement.style.backgroundImage = `url('${card.image}')`;
+                        cardNameElement.textContent = `${card.name}${isReversed ? ' (逆位)' : ''}`;
+                        
+                        // 最后一张牌翻完后生成答案
+                        if (index === 2) {
+                            generateThreeCardAnswer(selectedCards, [position1, position2, position3], cardReversed);
+                        }
+                    }, 500);
+                }, 500 * (index + 1));
+            });
+        }
+
+        // 生成单牌答案
+        function generateSingleCardAnswer(card, isReversed) {
+            // 随机选择一个解释
+            const randomInterpretation = card.interpretations[Math.floor(Math.random() * card.interpretations.length)];
+            
+            // 拟人化的开场白
+            const openings = [
+                "亲爱的朋友，",
+                "你好，",
+                "嘿，",
+                "亲爱的，"
+            ];
+            
+            const closing = [
+                "希望这个解读能给你一些启发。记住，命运掌握在你自己手中。",
+                "愿这张牌为你带来智慧和力量。",
+                "相信自己的直觉，你已经拥有面对一切的能力。",
+                "每一张牌都是对你内心的映射，相信你能找到属于自己的答案。"
+            ];
+            
+            const opening = openings[Math.floor(Math.random() * openings.length)];
+            const close = closing[Math.floor(Math.random() * closing.length)];
+            
+            // 构建答案
+            const answer = `${opening}\n\n你抽到的是【${card.name}】${isReversed ? '（逆位）' : ''}牌。\n\n这张牌的核心含义是：${card.meaning}。\n\n${isReversed ? `逆位含义：${card.reversed}` : `正位含义：${card.upright}`}\n\n我感受到，${randomInterpretation}\n\n${close}`;
+            
+            // 显示答案
+            document.getElementById('answer').textContent = answer;
+            document.getElementById('answerSection').classList.remove('hidden');
+        }
+
+        // 生成三张牌答案
+        function generateThreeCardAnswer(cards, positions, isReversedArray) {
+            // 构建答案
+            let answer = `嘿，\n让我们一起来看看这三张牌为你揭示的信息：\n\n`;
+            
+            cards.forEach((card, index) => {
+                const isReversed = isReversedArray[index];
+                const randomInterpretation = card.interpretations[Math.floor(Math.random() * card.interpretations.length)];
+                answer += `${positions[index]}的能量：【${card.name}】${isReversed ? '（逆位）' : ''}\n 这张牌象征着${card.meaning}${isReversed ? `\n 逆位含义：${card.reversed}` : `\n 正位含义：${card.upright}`}\n 我感受到，${randomInterpretation}\n\n\n`;
+            });
+            
+            answer += `愿这些牌为你带来智慧和力量。`;
+            
+            // 显示答案
+            document.getElementById('answer').textContent = answer;
+            document.getElementById('answerSection').classList.remove('hidden');
+        }
+    </script>
+</body>
+</html>
