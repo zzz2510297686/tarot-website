@@ -389,6 +389,11 @@
             </select>
         </div>
         
+        <div class="question-section" style="margin-bottom: 24px;">
+            <label for="userQuestion">你内心的声音：</label>
+            <input type="text" id="userQuestion" class="game-mode-select" placeholder="输入你的问题、事件、经过、结果，越详细知道的答案越多" style="margin-top: 8px;">
+        </div>
+        
         <button class="draw-button" onclick="drawCard()">开始占卜</button>
         
         <div class="card-section hidden" id="cardSection">
@@ -401,6 +406,7 @@
         <div class="answer-section hidden" id="answerSection">
             <h2>占卜结果</h2>
             <p id="answer"></p>
+            <button class="draw-button" onclick="generateAIAnswer()" style="margin-top: 16px;">AI深度解读</button>
         </div>
     </div>
 
@@ -868,6 +874,85 @@
             // 显示答案
             document.getElementById('answer').textContent = answer;
             document.getElementById('answerSection').classList.remove('hidden');
+        }
+
+        // 生成AI深度解读
+        function generateAIAnswer() {
+            const gameMode = document.getElementById('gameMode').value;
+            const answerElement = document.getElementById('answer');
+            const originalAnswer = answerElement.textContent;
+            const userQuestion = document.getElementById('userQuestion').value;
+            
+            // 显示加载状态
+            answerElement.textContent = 'AI正在为你生成深度解读...';
+            
+            // 准备AI提示词
+            let prompt;
+            if (gameMode === 'single') {
+                // 单牌模式
+                const cardName = document.getElementById('cardName').textContent;
+                prompt = `你是一位专业的塔罗牌解读师，用户问："${userQuestion}"，请结合抽到的牌【${cardName}】进行深度解读。请结合牌的象征意义、正逆位含义，针对用户的问题给出详细的分析和建议。回答要专业、有洞察力，帮助用户理解牌的深层含义以及对问题的启示。`;
+            } else {
+                // 三张牌模式
+                const card1Name = document.getElementById('cardName1').textContent;
+                const card2Name = document.getElementById('cardName2').textContent;
+                const card3Name = document.getElementById('cardName3').textContent;
+                prompt = `你是一位专业的塔罗牌解读师，用户问："${userQuestion}"，请结合抽到的三张牌进行深度解读：\n1. ${card1Name}\n2. ${card2Name}\n3. ${card3Name}\n\n请结合每张牌的象征意义、正逆位含义，以及它们之间的关系，针对用户的问题给出详细的分析和建议。回答要专业、有洞察力，帮助用户理解牌的深层含义和它们对问题的启示。`;
+            }
+            
+            // 调用DeepSeek API（使用不同的CORS代理）
+            const apiUrl = 'https://api.deepseek.com/v1/chat/completions';
+            const proxyUrl = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(apiUrl);
+            
+            console.log('开始调用AI API...');
+            console.log('代理URL:', proxyUrl);
+            console.log('提示词:', prompt);
+            
+            // 构建请求选项
+            const requestOptions = {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer sk-852a2c8b78434e99b6e682005338aae2'
+                },
+                body: JSON.stringify({
+                    model: 'deepseek-chat',
+                    messages: [{ role: 'user', content: prompt }],
+                    temperature: 0.7,
+                    max_tokens: 1000
+                })
+            };
+            
+            // 尝试直接调用（如果浏览器支持）
+            fetch(apiUrl, requestOptions)
+                .catch(error => {
+                    console.log('直接调用失败，尝试使用CORS代理:', error);
+                    // 如果直接调用失败，使用代理
+                    return fetch(proxyUrl, requestOptions);
+                })
+            .then(response => {
+                console.log('API响应状态:', response.status);
+                return response.json();
+            })
+            .then(data => {
+                console.log('API响应数据:', data);
+                if (data.choices && data.choices[0].message) {
+                    const aiAnswer = data.choices[0].message.content;
+                    answerElement.textContent = originalAnswer + '\n\n--- AI深度解读 ---\n' + aiAnswer;
+                } else {
+                    answerElement.textContent = originalAnswer + '\n\nAI解读生成失败，请重试。\n错误信息: ' + (data.error ? data.error.message : '未知错误');
+                }
+            })
+            .catch(error => {
+                console.error('AI API调用失败:', error);
+                let errorMessage = 'AI解读生成失败';
+                if (error.message) {
+                    errorMessage += `: ${error.message}`;
+                } else if (error.status) {
+                    errorMessage += `: HTTP ${error.status}`;
+                }
+                answerElement.textContent = originalAnswer + '\n\n' + errorMessage + '\n请检查网络连接和API密钥。';
+            });
         }
     </script>
 </body>
